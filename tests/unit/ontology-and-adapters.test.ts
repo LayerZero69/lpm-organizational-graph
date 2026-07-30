@@ -309,6 +309,16 @@ describe('Risk scheme mapping', () => {
     expect(() => mapNumberedTier('RETENTION_TIER', 4)).toThrow(RiskMappingError)
     expect(() => mapNumberedTier('CLASSIFICATION_TIER', 5)).toThrow(RiskMappingError)
   })
+
+  it('throws for an unnamed or invalid scheme rather than defaulting to one', () => {
+    // The integration boundary receives values TypeScript never checked (JSON,
+    // a database row, external config). A caller that fails to name a real
+    // scheme must never silently fall through to CLASSIFICATION_TIER.
+    expect(() => mapNumberedTier(undefined as unknown as never, 1)).toThrow(RiskMappingError)
+    expect(() => mapNumberedTier('' as never, 1)).toThrow(RiskMappingError)
+    expect(() => mapNumberedTier('BOGUS_SCHEME' as never, 1)).toThrow(RiskMappingError)
+    expect(() => mapNumberedTier('retention_tier' as never, 1)).toThrow(RiskMappingError)
+  })
 })
 
 describe('Confidence and provenance', () => {

@@ -59,6 +59,18 @@ export class RiskMappingError extends Error {
  * reintroduce exactly the ambiguity this module exists to remove.
  */
 export function mapNumberedTier(scheme: RiskScheme, tier: number): RiskLevel {
+  // The type system stops a compile-time caller from passing an invalid scheme,
+  // but this is the integration boundary: values can arrive from JSON, a
+  // database row, or external config that TypeScript never checked. A ternary
+  // over exactly two valid values silently treats "anything else" as the
+  // second one, which is precisely the ambiguity this module exists to remove.
+  // Validate explicitly rather than falling through.
+  if (scheme !== 'RETENTION_TIER' && scheme !== 'CLASSIFICATION_TIER') {
+    throw new RiskMappingError(
+      `Unknown risk scheme: ${JSON.stringify(scheme)}. Valid schemes: ${RISK_SCHEMES.join(', ')}. ` +
+        'There is no default scheme. Every caller must name the scheme it received.',
+    )
+  }
   const table = scheme === 'RETENTION_TIER' ? RETENTION_TIER_TO_RISK : CLASSIFICATION_TIER_TO_RISK
   const mapped = table[tier]
   if (mapped === undefined) {
