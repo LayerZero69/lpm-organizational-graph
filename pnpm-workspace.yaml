@@ -1,0 +1,5 @@
+# esbuild ships a postinstall build script. Vitest depends on it, and this
+# repository has no other native dependency, so the build is approved explicitly
+# rather than left as an unresolved install prompt in CI.
+allowBuilds:
+  esbuild: true

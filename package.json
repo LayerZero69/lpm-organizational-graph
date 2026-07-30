@@ -1,0 +1,46 @@
+{
+  "name": "@lapemo/organizational-graph",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Canonical ontology and runtime foundations for modeling organizational ownership, authority, supervision, decisions, governance, governed agents, systems, evidence, and lineage.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --dir tests/unit",
+    "test:acceptance": "vitest run --dir tests/acceptance",
+    "test:all": "vitest run",
+    "validate:ontology": "tsx scripts/validate-ontology.ts",
+    "validate:lineage": "tsx scripts/validate-lineage.ts",
+    "validate:voice": "tsx scripts/validate-voice.ts",
+    "demo:authority-lineage": "tsx src/cli/authority-lineage-demo.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^2.1.8"
+  }
+}

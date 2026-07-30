@@ -1,0 +1,101 @@
+name: CI
+
+# Phase 1A has no database and no deployment. There is deliberately no service
+# container, no connection string, and no secret anywhere in this workflow.
+# The whole suite runs against synthetic fixtures and an in-memory repository.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Voice rules
+        run: pnpm validate:voice
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Acceptance tests
+        run: pnpm test:acceptance
+
+      - name: Ontology validation
+        run: pnpm validate:ontology
+
+      - name: Lineage validation
+        run: pnpm validate:lineage
+
+      - name: Build
+        run: pnpm build
+
+      - name: Authority lineage demonstration
+        run: pnpm demo:authority-lineage
+
+  guard:
+    name: Boundary guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # A standing control. Phase 1A must never acquire a database dependency,
+      # a shared connection, or a committed secret by accident.
+      - name: No database or shared-backend dependency
+        run: |
+          set -e
+          fail() { echo "BOUNDARY VIOLATION: $1"; exit 1; }
+
+          # This guard necessarily contains the patterns it looks for, so it
+          # excludes its own file. Everything else is scanned.
+          SELF=".github/workflows/ci.yml"
+
+          if [ -d prisma ]; then fail "a prisma directory exists; Phase 1A has no persistence"; fi
+
+          if grep -rniE 'supabase|DATABASE_URL|DIRECT_DATABASE_URL' \
+               --include='*.ts' --include='*.yml' --include='*.json' \
+               src tests scripts .github 2>/dev/null | grep -v "^${SELF}:" ; then
+            fail "a shared-backend reference appears in code or CI"
+          fi
+
+          if grep -rnE 'postgres(ql)?://' --include='*.ts' --include='*.yml' \
+               src tests scripts .github 2>/dev/null | grep -v "^${SELF}:" ; then
+            fail "a database connection string appears in the repository"
+          fi
+
+          if ls -A .env .env.local .env.test 2>/dev/null | grep -q . ; then
+            fail "an env file other than the example is committed"
+          fi
+
+          echo "Boundary guard passed: no persistence, no shared-backend reference, no committed secret."

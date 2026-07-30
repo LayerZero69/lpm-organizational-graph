@@ -1,0 +1,27 @@
+name: Implementation task
+description: A scoped unit of implementation work
+title: "[task] "
+labels: [task]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What is true when this is done?
+    validations: { required: true }
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+    validations: { required: true }
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Boundaries respected
+      description: Confirm no shared-backend connection, no second writable source of truth, no platform formula reimplemented.
+    validations: { required: true }
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests and validation
+    validations: { required: true }

@@ -1,0 +1,27 @@
+name: Defect
+description: Report incorrect behavior
+title: "[defect] "
+labels: [defect]
+body:
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations: { required: true }
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: A fixture or a failing assertion is ideal. Evaluation is deterministic, so a defect should reproduce exactly.
+    validations: { required: true }
+  - type: input
+    id: versions
+    attributes:
+      label: Ontology and rule-set versions
+      description: Both appear in every evaluation result.
+    validations: { required: true }

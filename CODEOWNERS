@@ -1,0 +1,12 @@
+# Every change to this repository requires owner review.
+# Replace the placeholder with the real GitHub handle once the repository
+# is created under a confirmed owner.
+
+* @LAPEMO-OWNER-PLACEHOLDER
+
+# Load-bearing surfaces. Changing any of these changes what the graph means.
+/src/canon/            @LAPEMO-OWNER-PLACEHOLDER
+/src/domain/ontology/  @LAPEMO-OWNER-PLACEHOLDER
+/src/authority/        @LAPEMO-OWNER-PLACEHOLDER
+/src/adapters/lapemo/  @LAPEMO-OWNER-PLACEHOLDER
+/docs/ADR/             @LAPEMO-OWNER-PLACEHOLDER

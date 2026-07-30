@@ -1,0 +1,55 @@
+name: Ontology change
+description: Propose a new or changed node type, edge type, or relationship contract
+title: "[ontology] "
+labels: [ontology]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New ontology concepts require documented evidence. Do not create a generic
+        node where a canonical object already exists.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Which enterprise question can the graph not answer today?
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed object or edge
+      description: Include the canonical direction, allowed node pairs, and cardinality.
+    validations: { required: true }
+  - type: textarea
+    id: layers
+    attributes:
+      label: Affected framework layers
+      description: Use plain layer names. Never use layer shorthand codes.
+    validations: { required: true }
+  - type: textarea
+    id: ownership
+    attributes:
+      label: Source of truth
+      description: Does Lapemo, canon, or the Knowledge Object repository already own this? If so, this should be a reference or a projection, not a new concept.
+    validations: { required: true }
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and migration impact
+    validations: { required: true }
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Why is this concept real rather than speculative?
+    validations: { required: true }
+  - type: input
+    id: owner
+    attributes:
+      label: Accountable owner
+    validations: { required: true }
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision required
+      description: Any numeric threshold or weight is an owner decision. Propose, do not settle.

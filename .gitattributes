@@ -1,0 +1,9 @@
+# Normalize to LF in the repository AND in the working tree.
+#
+# Setting eol=lf rather than relying on text=auto alone avoids the phantom-diff
+# class seen elsewhere in this workspace, where a mixed-ending working copy
+# produces tool errors with no corresponding git diff.
+* text=auto eol=lf
+
+# Lockfiles are generated. Keep them out of diff noise.
+pnpm-lock.yaml linguist-generated=true -diff
