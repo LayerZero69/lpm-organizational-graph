@@ -97,7 +97,7 @@ Twelve, in `docs/INTEGRATION_BLOCKERS.md`. Three are blocking for Phase 1B: the 
 | `f8b4b9c` | Release-validation defect fix: risk-scheme validation (below) |
 | `c3357ca` | Publication closeout: `CODEOWNERS` resolved, this changelog entry drafted |
 | `d75cbdb` | CI infrastructure fix: pnpm workspace compatibility (below) |
-| **`v0.1.0`** | **The final release commit is the one this tag points to** — resolved this way rather than as a literal hash here, since no commit can contain its own SHA. Run `git rev-parse v0.1.0` or see the tag on GitHub. |
+| **`v0.1.0`** | **The final release commit is the one this tag points to.** Resolved this way rather than as a literal hash here, since no commit can contain its own SHA. Run `git rev-parse v0.1.0` or see the tag on GitHub. |
 
 ### Release-validation defect fix (`f8b4b9c`)
 
@@ -130,7 +130,7 @@ Test totals from the run: 181 unit + 22 acceptance = **203 passed, 0 failed, 0 s
 
 > "Upgrade to GitHub Pro or make this repository public to enable this feature."
 
-Verified with two independently well-formed requests (`PUT .../branches/main/protection` and `POST .../rulesets`), both `403`. The repository is **not** being made public to work around this — private visibility is a harder requirement than branch protection for this repository. The required check contexts are already identified and ready to apply the moment the owner upgrades the plan (or authorizes making the repo public, which is not recommended): `Verify`, `Boundary guard`.
+Verified with two independently well-formed requests (`PUT .../branches/main/protection` and `POST .../rulesets`), both `403`. The repository is **not** being made public to work around this: private visibility is a harder requirement than branch protection for this repository. The required check contexts are already identified and ready to apply the moment the owner upgrades the plan (or authorizes making the repo public, which is not recommended): `Verify`, `Boundary guard`.
 
 **Owner action required:** upgrade the `LayerZero69` account to GitHub Pro, Team, or Enterprise (or move the repository into an organization already on such a plan) to enable branch protection on this private repository.
 
