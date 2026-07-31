@@ -1,12 +1,12 @@
 # Every change to this repository requires owner review.
-# Replace the placeholder with the real GitHub handle once the repository
-# is created under a confirmed owner.
+# Owner confirmed via GitHub API (gh api user, gh api repos/.../): LayerZero69,
+# a personal User account with admin permission on this repository.
 
-* @LAPEMO-OWNER-PLACEHOLDER
+* @LayerZero69
 
 # Load-bearing surfaces. Changing any of these changes what the graph means.
-/src/canon/            @LAPEMO-OWNER-PLACEHOLDER
-/src/domain/ontology/  @LAPEMO-OWNER-PLACEHOLDER
-/src/authority/        @LAPEMO-OWNER-PLACEHOLDER
-/src/adapters/lapemo/  @LAPEMO-OWNER-PLACEHOLDER
-/docs/ADR/             @LAPEMO-OWNER-PLACEHOLDER
+/src/canon/            @LayerZero69
+/src/domain/ontology/  @LayerZero69
+/src/authority/        @LayerZero69
+/src/adapters/lapemo/  @LayerZero69
+/docs/ADR/             @LayerZero69

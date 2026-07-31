@@ -76,19 +76,35 @@ Twelve, in `docs/INTEGRATION_BLOCKERS.md`. Three are blocking for Phase 1B: the 
 | `lpm-ecosystem` | `0f8c4f0f7a47183f7ae1bcb57985601101313dcd` |
 | `lpm-branding-material` | `d50a0c8709deba3be617d4bbdecdc793b265e54a` |
 
-### Not yet created on GitHub
+## Publication, 2026-07-30
 
-`gh auth status` reports no authenticated host, so no remote was configured rather than guessing an owner. Every ecosystem remote resolves to the same owner, which is strong evidence but is not authentication.
+### Repository
 
-Recommended command, to run once the correct owner is confirmed:
+| Field | Value |
+|---|---|
+| Owner | `LayerZero69`, a personal GitHub `User` account, confirmed via `gh api user` and `gh api repos/LayerZero69/lpm-organizational-graph` (`owner_type: User`, `permissions.admin: true`) |
+| Repository | `lpm-organizational-graph` |
+| Remote URL | `https://github.com/LayerZero69/lpm-organizational-graph` |
+| Visibility | Private, confirmed via `gh repo view` (`visibility: PRIVATE`) |
+| Default branch | `main` |
+| Created | 2026-07-30T16:35:29Z |
 
-```bash
-gh repo create <OWNER>/lpm-organizational-graph \
-  --private \
-  --source . \
-  --remote origin \
-  --description "Canonical ontology and runtime foundations for modeling organizational ownership, authority, supervision, decisions, governance, governed agents, systems, evidence, and lineage." \
-  --push
-```
+### Commit history
 
-Replace the `CODEOWNERS` placeholder handle at the same time.
+| Commit | Role |
+|---|---|
+| `82355cd` | Original Phase 1A implementation commit, as approved |
+| `f8b4b9c` | Release-validation defect fix (below) |
+| *(this commit)* | Publication closeout: `CODEOWNERS` resolved, this changelog entry. Its own SHA and the remote CI/branch-protection result are recorded in a follow-up metadata-only commit, since a commit cannot contain its own hash. |
+
+### Release-validation defect fix (`f8b4b9c`)
+
+While validating this directive's own claim that "unnamed risk schemes fail rather than default," `mapNumberedTier` was found to do the opposite: its scheme selection was a binary ternary (`RETENTION_TIER` or else `CLASSIFICATION_TIER`), so `undefined`, an empty string, a typo, or a lowercase variant all silently fell through to the classification table and returned a mapped level instead of throwing. That contradicted the function's own documented contract and ADR-006's stated guarantee that there is no default scheme.
+
+Fixed by validating the scheme explicitly against the two known values and throwing `RiskMappingError` for anything else, with a regression test covering `undefined`, an empty string, an invalid name, and a case variant. No ontology, runtime, persistence, or Phase 1B change is included; the diff touches exactly `src/adapters/lapemo/risk-mapping.ts` and its test.
+
+Test count after this fix: 203 (181 unit, 22 acceptance), up from 202. All nine local gates re-verified against this exact commit.
+
+### Phase 1B status
+
+**All twelve blockers remain open**, including the three hard blockers (autonomy enum conflict, opposing risk-tier schemes, unprofiled backend data). See `docs/INTEGRATION_BLOCKERS.md`. This publication does not constitute approval to begin Phase 1B.
