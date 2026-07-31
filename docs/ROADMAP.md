@@ -23,7 +23,15 @@ Continuous evaluation across real organizational data. Lineage-gap detection at 
 
 ## Phase 3. Organizational Context Services
 
-Only if the term is ratified in canon and the service is approved. The contract types already exist; the service surface does not, and building it is not authorized.
+**Contract foundation and vertical slice delivered.** The v0.3 Context Package,
+server-side organization-mode resolution port, separate context and decision
+statuses, future-state authorization boundary, deterministic replay, provenance,
+package integrity, verification, `DIAGNOSTIC` no-write behavior, and the
+procurement acceptance slice are executable.
+
+Lapemo still owns production delivery: authenticated APIs, tenant resolution,
+same-transaction persistence through its service chokepoint, observability,
+Executive Control Plane surfaces, and external consumers.
 
 ## Phase 4. Enterprise graph runtime
 

@@ -42,9 +42,11 @@ Phase 1A ships adapter **interfaces** only. There is no Lapemo connection, no sh
 
 ## 5. Relationship to Organizational Context Services
 
-Organizational Context Services is a **proposed future contract and roadmap concept**. It does not exist in the Lapemo ecosystem today. This repository defines typed request and response shapes for it so the graph and any future service stay aligned, and builds no service, endpoint, authentication layer, or deployment.
-
-Do not read anything in this repository as a claim that Organizational Context Services currently exists.
+Organizational Context Services is a ratified Lapemo portfolio capability. This
+repository provides the versioned Context Package contract, purpose-bound
+assembly, deterministic integrity verification, and the executable procurement
+vertical slice. Lapemo owns authenticated delivery, tenancy, persistence,
+observability, and product surfaces.
 
 ## 6. What the Organizational Graph is
 
@@ -130,7 +132,7 @@ src/
   adapters/
     memory/      the in-memory repository used by tests and the demonstration
     lapemo/      read-oriented port contracts, autonomy and risk mappings
-  context/       Organizational Context Services proposed contract, types only
+  context/       Organizational Context Services contracts and assembly
   fixtures/      the synthetic procurement scenario and its named variants
   cli/           the authority lineage demonstration
 docs/            architecture, ontology, ADRs, integration blockers
@@ -225,7 +227,8 @@ Every pull request documents ontology impact, rule impact, migration impact, tes
 1. **Foundation, this release.** Ontology, temporal contracts, authority evaluator, queries, fixtures, demonstration.
 2. **Lapemo integration.** Adapter implementation and an approved migration for the new graph concepts.
 3. **Organizational observation.** Continuous evaluation over real organizational data.
-4. **Organizational Context Services.** The proposed service surface, if approved.
+4. **Organizational Context Services.** Production delivery through Lapemo,
+   building on the executable contract and reference slice in this repository.
 5. **Enterprise graph runtime.**
 
 Phase 1B is gated. See `docs/INTEGRATION_BLOCKERS.md`.

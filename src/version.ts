@@ -19,7 +19,7 @@ export const RULE_SET_VERSION = '0.1.0'
 export const SCHEMA_VERSION = '0.1.0'
 
 /** The Organizational Context Services request and response contracts. */
-export const CONTEXT_CONTRACT_VERSION = '0.1.0'
+export const CONTEXT_CONTRACT_VERSION = '0.3.0'
 
 export const VERSIONS = {
   package: PACKAGE_VERSION,

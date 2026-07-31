@@ -160,7 +160,7 @@ export {
   type LegacyPlatformAutonomyValue,
 } from './adapters/lapemo/autonomy-mapping.js'
 
-// Organizational Context Services: proposed future contract only.
+// Organizational Context Services: versioned contract and deterministic assembly.
 export * from './context/index.js'
 
 // Synthetic fixtures

@@ -19,7 +19,7 @@ import {
 import { AUTONOMY_SPECTRUM, AUTONOMY_BASELINE, autonomyOrdinal, requiresEarnedEvidence } from '@/canon/index.js'
 import { propagateConfidence, applySourcePenalty, compareProvenance } from '@/evidence/provenance.js'
 import { assessEvidenceCompleteness } from '@/evidence/completeness.js'
-import { validateResponseEnvelope, validateContextRequest } from '@/context/schemas.js'
+import { validateContextRequest } from '@/context/schemas.js'
 import { procurementScenario, fullyCompliant } from '@/fixtures/procurement-scenario.js'
 import type { InformationAssetNode, RequiredInformationClass } from '@/domain/nodes/index.js'
 
@@ -453,45 +453,43 @@ describe('Evidence completeness', () => {
 })
 
 describe('Organizational Context Services contracts', () => {
-  const envelope = {
-    asOf: '2026-03-15T00:00:00.000Z',
+  const request = {
+    requestId: 'request-1',
     organizationId: 'org-1',
-    ontologyVersion: '0.1.0',
-    ruleSetVersion: '0.1.0',
-    schemaVersion: '0.1.0',
-    contextContractVersion: '0.1.0',
-    confidence: 0.9,
-    stalenessIndicators: [],
-    evidenceRefs: [],
-    readOnly: true as const,
+    requestingActor: { actorType: 'PERSON' as const, logicalId: 'person-1' },
+    target: {
+      objectType: 'DecisionEvent',
+      logicalId: 'decision-1',
+      intendedAction: 'APPROVE',
+    },
+    purpose: 'Pre-action authority check',
+    correlationId: 'correlation-1',
   }
 
-  it('accepts a well-formed envelope', () => {
-    expect(validateResponseEnvelope(envelope).valid).toBe(true)
+  it('accepts a purpose-bound, organization-scoped request', () => {
+    expect(validateContextRequest(request).valid).toBe(true)
   })
 
-  it('requires every response to be temporal', () => {
-    const result = validateResponseEnvelope({ ...envelope, asOf: 'not-a-date' })
-    expect(result.issues.map((i) => i.path)).toContain('asOf')
+  it('validates an explicit effective timestamp', () => {
+    const result = validateContextRequest({ ...request, effectiveAt: 'not-a-date' })
+    expect(result.issues.map((issue) => issue.path)).toContain('effectiveAt')
   })
 
-  it('requires every response to be organization-scoped', () => {
-    const result = validateResponseEnvelope({ ...envelope, organizationId: '' })
-    expect(result.issues.map((i) => i.path)).toContain('organizationId')
+  it('requires every request to be organization-scoped', () => {
+    const result = validateContextRequest({ ...request, organizationId: '' })
+    expect(result.issues.map((issue) => issue.path)).toContain('organizationId')
   })
 
-  it('requires every response to be versioned', () => {
-    const result = validateResponseEnvelope({ ...envelope, ontologyVersion: '' })
-    expect(result.issues.map((i) => i.path)).toContain('ontologyVersion')
+  it('requires a declared purpose', () => {
+    const result = validateContextRequest({ ...request, purpose: '' })
+    expect(result.issues.map((issue) => issue.path)).toContain('purpose')
   })
 
-  it('requires every response to be read-only', () => {
-    const result = validateResponseEnvelope({ ...envelope, readOnly: false as unknown as true })
-    expect(result.issues.map((i) => i.path)).toContain('readOnly')
-  })
-
-  it('requires organization scope on every request', () => {
-    expect(validateContextRequest({ organizationId: '' }).valid).toBe(false)
-    expect(validateContextRequest({ organizationId: 'org-1' }).valid).toBe(true)
+  it('rejects an unrecognized operating-model state scope', () => {
+    const result = validateContextRequest({
+      ...request,
+      stateScope: 'LIVE' as unknown as 'CURRENT',
+    })
+    expect(result.issues.map((issue) => issue.path)).toContain('stateScope')
   })
 })

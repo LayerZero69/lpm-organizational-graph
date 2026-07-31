@@ -1,6 +1,7 @@
 # Graph Queries
 
-Typed application services in `src/graph/queries.ts`. These are the internal engine that a future Organizational Context Services would wrap.
+Typed application services in `src/graph/queries.ts`. These are graph query
+primitives consumed by Organizational Context Services.
 
 Every query is organization-scoped and takes a temporal context. There is no untimed answer.
 

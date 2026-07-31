@@ -150,13 +150,19 @@ Phase 1A does not need backend data, and **does not claim validation against pro
 
 ## IB-010. Organizational Context Services is unratified language
 
+**Status: closed by the Lapemo Organizational Context Services foundational
+product directive v0.3.0.**
+
 **Severity: low, but it affects public language.**
 
 The phrase appears in no canon file, governance record, or product surface anywhere in the ecosystem.
 
 **Handled in Phase 1A by:** documenting it strictly as a proposed future contract and roadmap concept, with the non-existence stated plainly in the README, in `docs/CONTEXT_SERVICES.md`, and in the contract module header. No service was built.
 
-**To close:** route the term through `lpm-canon` before it appears on any public surface.
+The directive establishes OCS as a portfolio capability downstream of
+`lpm-canon`, with canon retaining precedence on every conflict. Public language
+must preserve the category boundary: Lapemo remains the Organizational
+Intelligence Platform; OCS is not a replacement category.
 
 ---
 
