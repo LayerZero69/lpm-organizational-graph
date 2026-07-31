@@ -94,8 +94,10 @@ Twelve, in `docs/INTEGRATION_BLOCKERS.md`. Three are blocking for Phase 1B: the 
 | Commit | Role |
 |---|---|
 | `82355cd` | Original Phase 1A implementation commit, as approved |
-| `f8b4b9c` | Release-validation defect fix (below) |
-| *(this commit)* | Publication closeout: `CODEOWNERS` resolved, this changelog entry. Its own SHA and the remote CI/branch-protection result are recorded in a follow-up metadata-only commit, since a commit cannot contain its own hash. |
+| `f8b4b9c` | Release-validation defect fix: risk-scheme validation (below) |
+| `c3357ca` | Publication closeout: `CODEOWNERS` resolved, this changelog entry drafted |
+| `d75cbdb` | CI infrastructure fix: pnpm workspace compatibility (below) |
+| **`v0.1.0`** | **The final release commit is the one this tag points to** — resolved this way rather than as a literal hash here, since no commit can contain its own SHA. Run `git rev-parse v0.1.0` or see the tag on GitHub. |
 
 ### Release-validation defect fix (`f8b4b9c`)
 
@@ -103,7 +105,34 @@ While validating this directive's own claim that "unnamed risk schemes fail rath
 
 Fixed by validating the scheme explicitly against the two known values and throwing `RiskMappingError` for anything else, with a regression test covering `undefined`, an empty string, an invalid name, and a case variant. No ontology, runtime, persistence, or Phase 1B change is included; the diff touches exactly `src/adapters/lapemo/risk-mapping.ts` and its test.
 
-Test count after this fix: 203 (181 unit, 22 acceptance), up from 202. All nine local gates re-verified against this exact commit.
+Test count after this fix: 203 (181 unit, 22 acceptance), up from 202.
+
+### CI infrastructure fix (`d75cbdb`)
+
+The first real CI run (triggered by pushing `c3357ca`) failed before any gate ran: `pnpm store path --silent`, invoked internally by the Setup Node step's cache resolution, crashed with `ERROR packages field missing or empty` under the pnpm 9 pinned in `ci.yml`. Merely having a `pnpm-workspace.yaml` file puts pnpm 9 into workspace mode, which then requires a `packages` field even for a command unrelated to workspace member resolution. pnpm 11, used for local development, never required it, which is why the gap wasn't caught until the first push actually exercised CI.
+
+Reproduced with `npx pnpm@9 store path --silent` and fixed by adding `packages: []`, confirmed with a full `pnpm install --frozen-lockfile` under pnpm 9 in an isolated directory, which resolved dependency versions identical to the pnpm 11 environment used locally. Also confirmed while investigating: `allowBuilds` is a pnpm 10+ feature, absent from pnpm 9's own `pnpm help install`; under pnpm 9 postinstall scripts simply run unrestricted by default, so the key is inert there rather than broken, and no CI version bump was required.
+
+### Remote CI result
+
+Run [`30595232750`](https://github.com/LayerZero69/lpm-organizational-graph/actions/runs/30595232750) against commit `d75cbdb`: **both checks passed.**
+
+| Check | Result |
+|---|---|
+| `Boundary guard` | success (6s) |
+| `Verify` (bundles all nine local gates as steps: type check, lint, voice rules, unit tests, acceptance tests, ontology validation, lineage validation, build, authority-lineage demonstration) | success (39s) |
+
+Test totals from the run: 181 unit + 22 acceptance = **203 passed, 0 failed, 0 skipped**, matching local results exactly. No database or Supabase credential is used anywhere in the workflow. No deployment occurs.
+
+### Branch protection
+
+**Blocked by a GitHub plan limitation, not a configuration error.** Both the classic branch-protection API and the newer repository-rulesets API returned the same response for this private repository on this account:
+
+> "Upgrade to GitHub Pro or make this repository public to enable this feature."
+
+Verified with two independently well-formed requests (`PUT .../branches/main/protection` and `POST .../rulesets`), both `403`. The repository is **not** being made public to work around this — private visibility is a harder requirement than branch protection for this repository. The required check contexts are already identified and ready to apply the moment the owner upgrades the plan (or authorizes making the repo public, which is not recommended): `Verify`, `Boundary guard`.
+
+**Owner action required:** upgrade the `LayerZero69` account to GitHub Pro, Team, or Enterprise (or move the repository into an organization already on such a plan) to enable branch protection on this private repository.
 
 ### Phase 1B status
 
