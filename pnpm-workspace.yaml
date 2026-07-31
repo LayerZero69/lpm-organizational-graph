@@ -1,5 +1,24 @@
+# This is a single-package repository, not a monorepo. `packages: []`
+# declares that explicitly. Without it, pnpm 9 (as pinned in CI) crashes on
+# `pnpm store path` itself, before install even begins, with
+# "ERROR packages field missing or empty" -- merely having a
+# pnpm-workspace.yaml file at all triggers pnpm's workspace mode under that
+# version, and workspace mode requires this field to be present. Reproduced
+# and verified locally with `npx pnpm@9`; pnpm 11 (used for local
+# development) never required it, which is why the gap wasn't caught until
+# the first real CI run.
+packages: []
+
 # esbuild ships a postinstall build script. Vitest depends on it, and this
-# repository has no other native dependency, so the build is approved explicitly
-# rather than left as an unresolved install prompt in CI.
+# repository has no other native dependency, so the build is approved
+# explicitly rather than left as an unresolved install prompt in CI.
+#
+# allowBuilds is a pnpm 10+ build-script-approval feature and is not
+# recognized by pnpm 9 at all (absent from `pnpm help install`). Under pnpm 9,
+# postinstall scripts run unrestricted by default, so this key is simply
+# ignored there rather than causing a failure -- verified with a full
+# `pnpm install --frozen-lockfile` under pnpm 9, which completed cleanly and
+# resolved identical dependency versions to the pnpm 11 environment used for
+# local development.
 allowBuilds:
   esbuild: true
