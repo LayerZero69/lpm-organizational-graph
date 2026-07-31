@@ -29,6 +29,11 @@ statuses, future-state authorization boundary, deterministic replay, provenance,
 package integrity, verification, `DIAGNOSTIC` no-write behavior, and the
 procurement acceptance slice are executable.
 
+**Release gate.** OCS v0.3 remains unreleased until the corrective integrity PR
+is merged. The correction makes shared-secret HMAC verification mandatory and
+rejects insecure hash-only compatibility. It adds no deployment, network
+service, persistence, Lapemo integration, or production key management.
+
 Lapemo still owns production delivery: authenticated APIs, tenant resolution,
 same-transaction persistence through its service chokepoint, observability,
 Executive Control Plane surfaces, and external consumers.

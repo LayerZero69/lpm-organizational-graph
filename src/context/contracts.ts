@@ -39,6 +39,9 @@ export const DECISION_STATUSES = [
 ] as const
 export type DecisionStatus = (typeof DECISION_STATUSES)[number]
 
+export const CONTEXT_INTEGRITY_ALGORITHMS = ['SHA256_HMAC_SHA256'] as const
+export type ContextIntegrityAlgorithm = (typeof CONTEXT_INTEGRITY_ALGORITHMS)[number]
+
 export interface ContextActor {
   readonly actorType: 'PERSON' | 'GOVERNED_AGENT' | 'SYSTEM'
   readonly logicalId: string
@@ -61,7 +64,6 @@ export interface ContextPackageRequest {
   readonly stateScope?: OperatingModelStateScope
   readonly correlationId: string
   readonly idempotencyKey?: string
-  readonly requireVerificationToken?: boolean
 }
 
 export interface TemporalReplayKey {
@@ -99,6 +101,12 @@ export interface ProvenanceEntry {
   readonly logicalId: string
   readonly version: string
   readonly integrityState: 'VERIFIED' | 'UNVERIFIED'
+}
+
+export interface ContextIntegrityEnvelope {
+  readonly algorithm: ContextIntegrityAlgorithm
+  readonly contentHash: string
+  readonly authenticationToken: string
 }
 
 export interface OwnershipContext {
@@ -204,8 +212,7 @@ export interface ContextPackage {
   readonly contextContractVersion: string
   readonly temporalReplayKey: TemporalReplayKey
   readonly provenanceManifest: readonly ProvenanceEntry[]
-  readonly contextPackageHash: string
-  readonly verificationToken: string | null
+  readonly integrity: ContextIntegrityEnvelope
   readonly policyDecisionId: string
   readonly readOnly: true
 }
@@ -226,7 +233,10 @@ export interface AuthorityEvaluationPort {
     readonly decisionEventLogicalId: string
     readonly effectiveAt?: string
     readonly correlationId: string
-  }): Promise<EvaluationResult>
+  }): Promise<{
+    readonly organizationId: string
+    readonly evaluation: EvaluationResult
+  }>
 }
 
 export interface ContextEvaluationAudit {
@@ -245,8 +255,49 @@ export interface ContextAuditPort {
 }
 
 export interface ContextIntegrityPort {
+  readonly algorithm: ContextIntegrityAlgorithm
   hash(payload: string): Promise<string>
-  sign?(hash: string): Promise<string>
+  sign(hash: string): Promise<string>
+  verifyToken(hash: string, token: string): Promise<{
+    readonly valid: boolean
+    readonly reason:
+      | 'VERIFICATION_KEY_UNAVAILABLE'
+      | 'VERIFICATION_KEY_INVALID'
+      | 'AUTHENTICATION_TOKEN_MALFORMED'
+      | 'AUTHENTICATION_TOKEN_MISMATCH'
+      | null
+  }>
+}
+
+export type ContextVerificationFailureReason =
+  | 'MALFORMED_PACKAGE'
+  | 'MALFORMED_INTEGRITY_ENVELOPE'
+  | 'UNSUPPORTED_INTEGRITY_ALGORITHM'
+  | 'CONTENT_HASH_MALFORMED'
+  | 'CONTENT_HASH_MISMATCH'
+  | 'AUTHENTICATION_TOKEN_MISSING'
+  | 'AUTHENTICATION_TOKEN_MALFORMED'
+  | 'AUTHENTICATION_TOKEN_MISMATCH'
+  | 'VERIFICATION_KEY_UNAVAILABLE'
+  | 'VERIFICATION_KEY_INVALID'
+  | 'ORGANIZATION_SCOPE_MISMATCH'
+  | 'UNSUPPORTED_CONTEXT_CONTRACT_VERSION'
+  | 'UNSUPPORTED_SCHEMA_VERSION'
+  | 'UNSUPPORTED_ONTOLOGY_VERSION'
+  | 'UNSUPPORTED_RULE_SET_VERSION'
+
+export interface ContextVerificationScope {
+  readonly organizationId: string
+}
+
+export interface ContextVerificationResult {
+  readonly valid: boolean
+  readonly reasons: readonly ContextVerificationFailureReason[]
+  readonly algorithm: string | null
+  readonly hashStatus: 'VALID' | 'INVALID' | 'NOT_CHECKED'
+  readonly tokenStatus: 'VALID' | 'INVALID' | 'NOT_CHECKED'
+  readonly versionStatus: 'VALID' | 'INVALID' | 'NOT_CHECKED'
+  readonly organizationScopeStatus: 'VALID' | 'INVALID' | 'NOT_CHECKED'
 }
 
 export interface ContextServiceDependencies {
@@ -260,7 +311,10 @@ export interface ContextServiceDependencies {
 
 export interface OrganizationalContextServiceContract {
   assemblePackage(request: ContextPackageRequest): Promise<ContextPackage>
-  verifyPackage(contextPackage: ContextPackage): Promise<boolean>
+  verifyPackage(
+    contextPackage: unknown,
+    scope: ContextVerificationScope,
+  ): Promise<ContextVerificationResult>
 }
 
 export const CONTEXT_SERVICE_BOUNDARIES = [

@@ -17,7 +17,19 @@ Later Lapemo integration occurs through imported package contracts, adapters, go
 
 ## 2. No secrets
 
-Phase 1A reads no environment variable and holds no credential. `.env.example` documents that deliberately rather than being absent.
+Phase 1A reads no environment variable and contains no production credential.
+`.env.example` documents that deliberately rather than being absent.
+
+OCS integrity tests use synthetic shared keys supplied directly by test
+dependencies. No default production key, environment lookup, key logging, or
+production key-management design is included. A missing or empty verification
+key fails explicitly.
+
+The Context Package carries a SHA-256 content integrity hash and an HMAC-SHA-256
+authentication token. Verification recomputes both and uses a timing-safe token
+comparison. Hash equality alone is never sufficient. HMAC proves possession of
+a shared secret; it is not a public-key digital signature and does not grant
+organizational authority.
 
 ## 3. Synthetic data only
 
@@ -32,6 +44,9 @@ All traversal is organization-scoped. There is no cross-organization path.
 - Every node and edge requires a non-empty organization identifier. Validation rejects an unscoped record.
 - An edge that crosses an organizational boundary is a validation violation.
 - A scope mismatch during evaluation produces `INDETERMINATE`, which is an explicit "cannot answer", not a silent empty result that could be mistaken for "nothing found".
+- OCS assembly rejects a resolver or authority adapter that returns another
+  organization, and package verification requires an independently supplied
+  expected organization identifier.
 
 Inbound platform data may carry a null organization scope. The adapter must reject it rather than defaulting it.
 
