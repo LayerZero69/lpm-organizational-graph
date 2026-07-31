@@ -1,50 +1,59 @@
 # Organizational Context Services
 
-## Status: proposed future contract and roadmap concept. It does not exist.
+## Status
 
-Organizational Context Services is **not** a component of the Lapemo ecosystem today. The phrase appears in no canon file, no governance record, and no product surface anywhere in the workspace. It is recorded as integration blocker IB-010 and must be routed through `lpm-canon` before it appears on any public surface.
+Organizational Context Services (OCS) is a ratified Lapemo portfolio capability.
+The foundational directive is
+`lpm-os-master/docs/product/LAPEMO_ORGANIZATIONAL_CONTEXT_SERVICES.md` v0.3.0.
+The graph repository supplies its versioned contract, deterministic authority
+evaluation, Context Package assembly, integrity verification, and executable
+procurement reference slice. Network delivery, tenancy, authentication,
+dashboards, and governed commands remain Lapemo Platform responsibilities.
 
-Nothing in this repository should be read as a claim that Organizational Context Services currently exists, is available, or is being built.
+## Boundary
 
-**Phase 1A defines typed request and response shapes and nothing else.** There is no network service, no endpoint host, no authentication layer, no deployment, and no action execution. The contract exists so that the graph and any future service stay aligned from the start, without building premature infrastructure.
+The Organizational Graph models organizational truth. OCS assembles the minimum
+sufficient governed context needed at the moment of work. OCS can read,
+evaluate, assemble, audit its evaluation, and propose remediation. It cannot
+grant authority, change ownership or policy, advance agent autonomy, promote an
+Organizational Twin state, or mutate historical truth.
 
-## Proposed definition
+Organization mode is resolved by a trusted server-side adapter before evaluation.
+`LIVE` evaluations emit an OCS audit artifact. `DIAGNOSTIC` evaluations read
+frozen state and do not write to the tenant rail.
 
-A runtime service layer that would let a human, an assistant, a workflow, or a governed agent retrieve trusted organizational context before making or executing a decision.
+## Context Package v0.3.0
 
-RAG retrieves documents. MCP exposes tools. The proposed service would deliver structured organizational understanding.
+`src/context/contracts.ts` defines separate context and decision status axes,
+organization mode, operating-model state scope, purpose, actor and target,
+ownership, authority, governance, information, systems, approvals, escalation,
+evidence, lineage, risks, required actions, separate context and gate confidence,
+version markers, a temporal replay key, provenance manifest, package hash,
+optional verification token, expiration, and a literal `readOnly: true`.
 
-## Proposed context endpoints
+The following invariants are executable:
 
-| Endpoint | Would answer |
-|---|---|
-| Ownership context | Who owns this outcome, entity, or domain, with lineage |
-| Authority context | What an actor is authorized to decide or do, within what limits, from active grants and delegation chains |
-| Governance context | Which policies, controls, review requirements and risk levels apply |
-| Decision context | How this class of decision is made, its autonomy ceiling, gates, and escalation path |
-| Accountability context | Which human is accountable and which human supervises |
+- incomplete, conflicted, or unavailable context never authorizes;
+- `PROPOSED`, `SIMULATED`, and `APPROVED` states are advisory only;
+- authority uncertainty fails closed;
+- the same replay key and source state produce the same determination and hash;
+- material packages are SHA-256 integrity-verifiable;
+- `DIAGNOSTIC` evaluation writes no OCS audit artifact.
 
-## Response envelope
+## Procurement vertical slice
 
-Every response would carry:
+The real authority evaluator and governed graph fixture produce:
 
-- `asOf` timestamp. All answers are temporal.
-- Organization scope.
-- Ontology version, rule-set version, schema version, context contract version.
-- Confidence.
-- Staleness indicators for the underlying signals.
-- Evidence references.
-- `readOnly: true`, which is a literal type, not a flag that could be set false.
+- `$42,000` request against a `$25,000` grant;
+- required human review missing;
+- vendor-risk information missing;
+- `$100,000` technical permission exceeding legitimate authority;
+- exactly one accountable human and a complete delegation chain;
+- `contextStatus: INCOMPLETE`;
+- `decisionStatus: UNAUTHORIZED`;
+- `recommendation: BLOCK_AND_ESCALATE`.
 
-`src/context/schemas.ts` validates all seven properties. `assertValidEnvelope` throws with the specific reasons when any is missing, and there are contract tests for each.
+After the amount, permission, review, and vendor-risk evidence are corrected, the
+same service returns `COMPLETE` and `AUTHORIZED`.
 
-## Non-goals
-
-- **Read-only.** It would never execute an action.
-- **Organization-scoped.** There would be no cross-organization context.
-- **Governed graph only.** It would never improvise context from unstructured sources.
-- **Not built in Phase 1A.** Contract types only.
-
-## Relationship to this repository
-
-The authority evaluator, the query services and these typed contracts are the engine such a service would wrap. Building the service surface is a later roadmap phase and is not authorized.
+`tests/acceptance/context-services.test.ts` is the executable proof.

@@ -1,13 +1,11 @@
-/**
- * Runtime validation for the proposed Organizational Context Services contracts.
- *
- * Hand-written validators rather than a schema library, so the package keeps zero
- * runtime dependencies and stays portable. Contract tests use these to prove that
- * every response is temporal, organization-scoped, versioned, evidence-backed and
- * read-only, which are the five properties the contract promises.
- */
-
-import type { ContextResponseEnvelope, ContextRequestBase } from './contracts.js'
+import {
+  CONTEXT_STATUSES,
+  DECISION_STATUSES,
+  OPERATING_MODEL_STATE_SCOPES,
+  ORGANIZATION_MODES,
+  type ContextPackage,
+  type ContextPackageRequest,
+} from './contracts.js'
 
 export interface ValidationIssue {
   readonly path: string
@@ -19,14 +17,6 @@ export interface ValidationResult {
   readonly issues: readonly ValidationIssue[]
 }
 
-function ok(): ValidationResult {
-  return { valid: true, issues: [] }
-}
-
-function fail(issues: ValidationIssue[]): ValidationResult {
-  return { valid: issues.length === 0, issues }
-}
-
 function isIsoTimestamp(value: unknown): value is string {
   return typeof value === 'string' && !Number.isNaN(Date.parse(value))
 }
@@ -35,59 +25,96 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-/** Validate a context request. Organization scope is mandatory on every request. */
-export function validateContextRequest(request: ContextRequestBase): ValidationResult {
+export function validateContextRequest(request: ContextPackageRequest): ValidationResult {
   const issues: ValidationIssue[] = []
-  if (!isNonEmptyString(request.organizationId)) {
-    issues.push({ path: 'organizationId', message: 'organizationId is required. Every context request is organization-scoped.' })
+  for (const [path, value] of [
+    ['requestId', request.requestId],
+    ['organizationId', request.organizationId],
+    ['purpose', request.purpose],
+    ['correlationId', request.correlationId],
+    ['requestingActor.logicalId', request.requestingActor.logicalId],
+    ['target.logicalId', request.target.logicalId],
+    ['target.intendedAction', request.target.intendedAction],
+  ] as const) {
+    if (!isNonEmptyString(value)) issues.push({ path, message: `${path} is required.` })
   }
-  if (request.asOf !== undefined && !isIsoTimestamp(request.asOf)) {
-    issues.push({ path: 'asOf', message: 'asOf must be an ISO 8601 timestamp when supplied.' })
+  if (request.effectiveAt !== undefined && !isIsoTimestamp(request.effectiveAt)) {
+    issues.push({ path: 'effectiveAt', message: 'effectiveAt must be an ISO 8601 timestamp.' })
   }
-  return fail(issues)
+  if (
+    request.stateScope !== undefined &&
+    !OPERATING_MODEL_STATE_SCOPES.includes(request.stateScope)
+  ) {
+    issues.push({ path: 'stateScope', message: 'stateScope is not recognized.' })
+  }
+  return { valid: issues.length === 0, issues }
 }
 
-/**
- * Validate a response envelope against the five promised properties.
- * A response that fails any of these is not a valid context answer.
- */
-export function validateResponseEnvelope(envelope: ContextResponseEnvelope): ValidationResult {
+export function validateContextPackage(contextPackage: ContextPackage): ValidationResult {
   const issues: ValidationIssue[] = []
-
-  if (!isIsoTimestamp(envelope.asOf)) {
-    issues.push({ path: 'asOf', message: 'Every response must be temporal. asOf is required and must be ISO 8601.' })
+  if (!ORGANIZATION_MODES.includes(contextPackage.organization.mode)) {
+    issues.push({ path: 'organization.mode', message: 'Organization mode must be resolved server-side.' })
   }
-  if (!isNonEmptyString(envelope.organizationId)) {
-    issues.push({ path: 'organizationId', message: 'Every response must be organization-scoped.' })
+  if (!CONTEXT_STATUSES.includes(contextPackage.contextStatus)) {
+    issues.push({ path: 'contextStatus', message: 'Context status must use the OCS context axis.' })
   }
-  for (const field of ['ontologyVersion', 'ruleSetVersion', 'schemaVersion', 'contextContractVersion'] as const) {
-    if (!isNonEmptyString(envelope[field])) {
-      issues.push({ path: field, message: `Every response must be versioned. ${field} is required.` })
+  if (!DECISION_STATUSES.includes(contextPackage.decisionStatus)) {
+    issues.push({ path: 'decisionStatus', message: 'Decision status must use the OCS decision axis.' })
+  }
+  for (const field of ['evaluatedAt', 'effectiveAt', 'expiresAt'] as const) {
+    if (!isIsoTimestamp(contextPackage[field])) {
+      issues.push({ path: field, message: `${field} must be an ISO 8601 timestamp.` })
     }
   }
-  if (typeof envelope.confidence !== 'number' || envelope.confidence < 0 || envelope.confidence > 1) {
-    issues.push({ path: 'confidence', message: 'confidence must sit on the 0.0 to 1.0 scale.' })
+  for (const field of [
+    'ontologyVersion',
+    'schemaVersion',
+    'ruleSetVersion',
+    'contextContractVersion',
+    'contextPackageHash',
+    'policyDecisionId',
+  ] as const) {
+    if (!isNonEmptyString(contextPackage[field])) {
+      issues.push({ path: field, message: `${field} is required.` })
+    }
   }
-  if (!Array.isArray(envelope.evidenceRefs)) {
-    issues.push({ path: 'evidenceRefs', message: 'Every response must be evidence-backed. evidenceRefs is required, and may be empty only when the answer rests on no evidence at all.' })
+  if (contextPackage.readOnly !== true) {
+    issues.push({ path: 'readOnly', message: 'OCS packages are read-only.' })
   }
-  if (!Array.isArray(envelope.stalenessIndicators)) {
-    issues.push({ path: 'stalenessIndicators', message: 'stalenessIndicators is required so a consumer can tell how fresh the answer is.' })
+  if (
+    contextPackage.contextConfidence.score < 0 ||
+    contextPackage.contextConfidence.score > 1
+  ) {
+    issues.push({ path: 'contextConfidence.score', message: 'Context confidence uses the 0 to 1 scale.' })
   }
-  if (envelope.readOnly !== true) {
-    issues.push({ path: 'readOnly', message: 'Organizational Context Services is read-only. readOnly must be exactly true.' })
+  if (
+    contextPackage.decisionStatus === 'AUTHORIZED' &&
+    contextPackage.contextStatus !== 'COMPLETE'
+  ) {
+    issues.push({
+      path: 'decisionStatus',
+      message: 'Incomplete, conflicted, or unavailable context can never authorize.',
+    })
   }
-
-  return fail(issues)
+  if (
+    ['PROPOSED', 'SIMULATED', 'APPROVED'].includes(contextPackage.stateScope) &&
+    contextPackage.decisionStatus !== 'NOT_APPLICABLE'
+  ) {
+    issues.push({
+      path: 'decisionStatus',
+      message: 'Future-state evaluations are advisory and must be NOT_APPLICABLE.',
+    })
+  }
+  return { valid: issues.length === 0, issues }
 }
 
-/** Convenience for contract tests: assert an envelope or throw with the reasons. */
-export function assertValidEnvelope(envelope: ContextResponseEnvelope): void {
-  const result = validateResponseEnvelope(envelope)
+export function assertValidContextPackage(contextPackage: ContextPackage): void {
+  const result = validateContextPackage(contextPackage)
   if (!result.valid) {
-    const detail = result.issues.map((issue) => `${issue.path}: ${issue.message}`).join('; ')
-    throw new Error(`Invalid context response envelope. ${detail}`)
+    throw new Error(
+      `Invalid Context Package. ${result.issues
+        .map((issue) => `${issue.path}: ${issue.message}`)
+        .join('; ')}`,
+    )
   }
 }
-
-export { ok as validationOk }

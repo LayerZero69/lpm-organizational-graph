@@ -1,7 +1,7 @@
 /**
  * Typed graph query services.
  *
- * These are the internal engine that Organizational Context Services would later
+ * These are the graph query primitives that Organizational Context Services
  * wrap. They return structural facts. They never compute a platform formula, and
  * QRY-007 in particular returns raw counts and distributions only, because the
  * Supervisory Control Capacity formula is owned by the Lapemo platform and is

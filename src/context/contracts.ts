@@ -1,159 +1,272 @@
 /**
- * Organizational Context Services: PROPOSED FUTURE CONTRACT ONLY.
+ * Organizational Context Services v0.3 contract.
  *
- * Organizational Context Services does not exist in the Lapemo ecosystem today.
- * The phrase appears in no canon file, no governance record, and no product
- * surface. It is a proposed future contract and a roadmap concept, and nothing
- * in this package should be read as a claim that it currently exists.
- *
- * Phase 1A defines the typed request and response shapes and nothing else. There
- * is deliberately NO network service, no endpoint host, no authentication layer,
- * no deployment, and no action execution. Defining the contract early keeps the
- * graph and any future service aligned without building premature infrastructure.
- *
- * The proposed service, were it built, would be READ-ONLY, organization-scoped,
- * and answerable only from the governed graph.
+ * The graph owns organizational truth and deterministic evaluation. OCS owns
+ * purpose-bound assembly and delivery. These types are the versioned boundary
+ * between those responsibilities; they do not create a mutation path.
  */
 
-import type { AutonomyLevelKey, RiskLevel } from '../domain/enums/index.js'
-import type { PrimaryStatus } from '../authority/status.js'
+import type { EvaluationResult } from '../authority/types.js'
+import type { RequiredAction } from '../authority/status.js'
 
-/** Every response is temporal, versioned, evidence-backed and organization-scoped. */
-export interface ContextResponseEnvelope {
-  /** All answers are temporal. There is no untimed answer. */
-  readonly asOf: string
+export const ORGANIZATION_MODES = ['LIVE', 'DIAGNOSTIC'] as const
+export type OrganizationMode = (typeof ORGANIZATION_MODES)[number]
+
+export const OPERATING_MODEL_STATE_SCOPES = [
+  'CURRENT',
+  'PROPOSED',
+  'SIMULATED',
+  'APPROVED',
+  'ACTUAL',
+] as const
+export type OperatingModelStateScope = (typeof OPERATING_MODEL_STATE_SCOPES)[number]
+
+export const CONTEXT_STATUSES = [
+  'COMPLETE',
+  'CONDITIONALLY_COMPLETE',
+  'INCOMPLETE',
+  'CONFLICTED',
+  'UNAVAILABLE',
+] as const
+export type ContextStatus = (typeof CONTEXT_STATUSES)[number]
+
+export const DECISION_STATUSES = [
+  'AUTHORIZED',
+  'CONDITIONALLY_AUTHORIZED',
+  'UNAUTHORIZED',
+  'REVIEW_REQUIRED',
+  'NOT_APPLICABLE',
+] as const
+export type DecisionStatus = (typeof DECISION_STATUSES)[number]
+
+export interface ContextActor {
+  readonly actorType: 'PERSON' | 'GOVERNED_AGENT' | 'SYSTEM'
+  readonly logicalId: string
+}
+
+export interface ContextTarget {
+  readonly objectType: string
+  readonly logicalId: string
+  readonly intendedAction: string
+}
+
+/** Client-supplied request. Organization mode is deliberately absent. */
+export interface ContextPackageRequest {
+  readonly requestId: string
   readonly organizationId: string
-  readonly ontologyVersion: string
+  readonly requestingActor: ContextActor
+  readonly target: ContextTarget
+  readonly purpose: string
+  readonly effectiveAt?: string
+  readonly stateScope?: OperatingModelStateScope
+  readonly correlationId: string
+  readonly idempotencyKey?: string
+  readonly requireVerificationToken?: boolean
+}
+
+export interface TemporalReplayKey {
+  readonly organizationId: string
+  readonly effectiveAt: string
   readonly ruleSetVersion: string
+  readonly stateReferenceId: string
+}
+
+/** Versioned boundary owned by the Organizational Twin or current graph state. */
+export interface OperatingModelStateReference {
+  readonly referenceId: string
+  readonly stateScope: OperatingModelStateScope
+  readonly version: string
+  readonly source: 'ORGANIZATIONAL_GRAPH' | 'ORGANIZATIONAL_TWIN'
+  readonly canAuthorizeLiveExecution: boolean
+}
+
+export interface ContextConfidence {
+  readonly score: number
+  readonly completeness: number
+  readonly freshness: 'CURRENT' | 'STALE' | 'UNKNOWN'
+  readonly lineageComplete: boolean
+}
+
+export interface GateConfidence {
+  readonly score: number
+  readonly threshold: number
+  readonly cleared: boolean
+  readonly measuredAt: string
+}
+
+export interface ProvenanceEntry {
+  readonly artifactType: string
+  readonly logicalId: string
+  readonly version: string
+  readonly integrityState: 'VERIFIED' | 'UNVERIFIED'
+}
+
+export interface OwnershipContext {
+  readonly accountablePersonLogicalId: string | null
+  readonly accountablePersonName: string | null
+  readonly operationalOwnerLogicalId: string | null
+  readonly technicalOwnerLogicalId: string | null
+}
+
+export interface AuthorityContext {
+  readonly matchingGrantLogicalId: string | null
+  readonly limitations: readonly string[]
+  readonly violations: readonly {
+    readonly code: string
+    readonly detail: string
+    readonly clearingPredicate: string
+  }[]
+}
+
+export interface GovernanceContext {
+  readonly policyLogicalIds: readonly string[]
+  readonly controlLogicalIds: readonly string[]
+  readonly reviewRequirements: readonly {
+    readonly source: string
+    readonly reference: string
+    readonly detail: string
+  }[]
+}
+
+export interface InformationContext {
+  readonly informationAssetLogicalIds: readonly string[]
+  readonly requiredCount: number
+  readonly presentCount: number
+  readonly missingLogicalIds: readonly string[]
+}
+
+export interface SystemContext {
+  readonly invokedSystemLogicalIds: readonly string[]
+  readonly permissionLogicalIds: readonly string[]
+  readonly permissionAuthorityMismatch: boolean
+}
+
+export interface EscalationContext {
+  readonly accountablePersonLogicalId: string | null
+  readonly supervisorPersonLogicalId: string | null
+  readonly supervisorCapacity: 'AVAILABLE' | 'OVER_CAPACITY' | 'UNKNOWN'
+}
+
+export interface LineageContext {
+  readonly delegationChain: readonly {
+    readonly grantLogicalId: string
+    readonly depth: number
+    readonly organizationalSource: string | null
+  }[]
+  readonly complete: boolean
+}
+
+export interface ContextPackage {
+  readonly contextPackageId: string
+  readonly request: {
+    readonly requestId: string
+    readonly correlationId: string
+    readonly idempotencyKey: string | null
+  }
+  readonly organization: {
+    readonly organizationId: string
+    readonly mode: OrganizationMode
+  }
+  readonly requestingActor: ContextActor
+  readonly target: ContextTarget
+  readonly purpose: string
+  readonly evaluatedAt: string
+  readonly effectiveAt: string
+  readonly expiresAt: string
+  readonly refreshRequired: boolean
+  readonly contextStatus: ContextStatus
+  readonly decisionStatus: DecisionStatus
+  readonly stateScope: OperatingModelStateScope
+  readonly stateReference: OperatingModelStateReference
+  readonly ownership: OwnershipContext
+  readonly authority: AuthorityContext
+  readonly governance: GovernanceContext
+  readonly information: InformationContext
+  readonly systems: SystemContext
+  readonly approvals: {
+    readonly humanReviewRequired: boolean
+    readonly satisfied: boolean
+  }
+  readonly escalation: EscalationContext
+  readonly evidence: {
+    readonly logicalIds: readonly string[]
+    readonly completeness: number
+  }
+  readonly lineage: LineageContext
+  readonly risks: readonly string[]
+  readonly requiredActions: readonly RequiredAction[]
+  readonly recommendation: 'PROCEED' | 'HOLD_FOR_REVIEW' | 'BLOCK_AND_ESCALATE' | 'ADVISORY_ONLY'
+  readonly contextConfidence: ContextConfidence
+  readonly gateConfidence: GateConfidence | null
+  readonly ontologyVersion: string
   readonly schemaVersion: string
+  readonly ruleSetVersion: string
   readonly contextContractVersion: string
-  readonly confidence: number
-  /** Staleness indicators for the signals underlying the answer. */
-  readonly stalenessIndicators: readonly StalenessIndicator[]
-  readonly evidenceRefs: readonly string[]
-  /** Always true. The proposed service never executes an action. */
+  readonly temporalReplayKey: TemporalReplayKey
+  readonly provenanceManifest: readonly ProvenanceEntry[]
+  readonly contextPackageHash: string
+  readonly verificationToken: string | null
+  readonly policyDecisionId: string
   readonly readOnly: true
 }
 
-export interface StalenessIndicator {
-  readonly signal: string
-  readonly lastRefreshedAt: string | null
-  readonly isStale: boolean
-}
-
-export interface ContextRequestBase {
+export interface OrganizationResolution {
   readonly organizationId: string
-  /** Omit to ask about now. Supply to reconstruct a past state. */
-  readonly asOf?: string
+  readonly mode: OrganizationMode
+  readonly currentStateReference: OperatingModelStateReference
 }
 
-// ── Ownership context ───────────────────────────────────────────────────────
-export interface OwnershipContextRequest extends ContextRequestBase {
-  readonly subjectLogicalId: string
+export interface OrganizationResolver {
+  resolve(organizationId: string): Promise<OrganizationResolution | null>
 }
 
-export interface OwnershipContextResponse {
-  readonly envelope: ContextResponseEnvelope
-  readonly subjectLogicalId: string
-  readonly accountablePersonLogicalId: string | null
-  readonly accountablePersonName: string | null
-  readonly ownershipLineage: readonly OwnershipLineageEntry[]
+export interface AuthorityEvaluationPort {
+  evaluate(request: {
+    readonly organizationId: string
+    readonly decisionEventLogicalId: string
+    readonly effectiveAt?: string
+    readonly correlationId: string
+  }): Promise<EvaluationResult>
 }
 
-export interface OwnershipLineageEntry {
-  readonly personLogicalId: string
-  readonly effectiveFrom: string
-  readonly effectiveTo: string | null
-  readonly sourceSystem: string | null
+export interface ContextEvaluationAudit {
+  readonly contextPackageId: string
+  readonly organizationId: string
+  readonly organizationMode: OrganizationMode
+  readonly correlationId: string
+  readonly contextStatus: ContextStatus
+  readonly decisionStatus: DecisionStatus
+  readonly contextPackageHash: string
+  readonly evaluatedAt: string
 }
 
-// ── Authority context ───────────────────────────────────────────────────────
-export interface AuthorityContextRequest extends ContextRequestBase {
-  readonly actorLogicalId: string
-  readonly decisionTypeLogicalId?: string
+export interface ContextAuditPort {
+  recordEvaluation(audit: ContextEvaluationAudit): Promise<void>
 }
 
-export interface AuthorityContextResponse {
-  readonly envelope: ContextResponseEnvelope
-  readonly actorLogicalId: string
-  readonly grants: readonly AuthorityContextGrant[]
+export interface ContextIntegrityPort {
+  hash(payload: string): Promise<string>
+  sign?(hash: string): Promise<string>
 }
 
-export interface AuthorityContextGrant {
-  readonly grantLogicalId: string
-  readonly decisionTypeLogicalId: string
-  readonly allowedActions: readonly string[]
-  readonly prohibitedActions: readonly string[]
-  readonly financialLimit: { readonly amount: number; readonly currency: string } | null
-  readonly riskLimit: RiskLevel | null
-  readonly effectiveFrom: string
-  readonly effectiveTo: string | null
-  readonly delegationChainLogicalIds: readonly string[]
+export interface ContextServiceDependencies {
+  readonly organizations: OrganizationResolver
+  readonly authority: AuthorityEvaluationPort
+  readonly audit: ContextAuditPort
+  readonly integrity: ContextIntegrityPort
+  readonly now?: () => Date
+  readonly ttlSeconds?: number
 }
 
-// ── Governance context ──────────────────────────────────────────────────────
-export interface GovernanceContextRequest extends ContextRequestBase {
-  readonly decisionTypeLogicalId: string
-}
-
-export interface GovernanceContextResponse {
-  readonly envelope: ContextResponseEnvelope
-  readonly decisionTypeLogicalId: string
-  readonly policyLogicalIds: readonly string[]
-  readonly controlLogicalIds: readonly string[]
-  readonly riskLevel: RiskLevel
-  readonly humanReviewConditions: readonly string[]
-}
-
-// ── Decision context ────────────────────────────────────────────────────────
-export interface DecisionContextRequest extends ContextRequestBase {
-  readonly decisionTypeLogicalId: string
-  readonly actorLogicalId?: string
-}
-
-export interface DecisionContextResponse {
-  readonly envelope: ContextResponseEnvelope
-  readonly decisionTypeLogicalId: string
-  /** Derived at request time from lineage. Never a stored field. */
-  readonly autonomyCeiling: AutonomyLevelKey | null
-  readonly autonomyCeilingBlockedBy: string | null
-  readonly effectiveAutonomyLevel: AutonomyLevelKey | null
-  readonly requiredInformationClassIds: readonly string[]
-  readonly escalationPersonLogicalId: string | null
-}
-
-// ── Accountability context ──────────────────────────────────────────────────
-export interface AccountabilityContextRequest extends ContextRequestBase {
-  readonly subjectLogicalId: string
-}
-
-export interface AccountabilityContextResponse {
-  readonly envelope: ContextResponseEnvelope
-  readonly subjectLogicalId: string
-  readonly accountablePersonLogicalId: string | null
-  readonly supervisorPersonLogicalId: string | null
-  readonly lastEvaluationStatus: PrimaryStatus | null
-}
-
-/**
- * The five proposed context endpoints.
- *
- * This is a TYPE, not an implementation. Nothing in Phase 1A implements it, and
- * implementing it is explicitly out of scope until the roadmap phase that builds
- * the service surface is approved.
- */
 export interface OrganizationalContextServiceContract {
-  ownershipContext(request: OwnershipContextRequest): Promise<OwnershipContextResponse>
-  authorityContext(request: AuthorityContextRequest): Promise<AuthorityContextResponse>
-  governanceContext(request: GovernanceContextRequest): Promise<GovernanceContextResponse>
-  decisionContext(request: DecisionContextRequest): Promise<DecisionContextResponse>
-  accountabilityContext(request: AccountabilityContextRequest): Promise<AccountabilityContextResponse>
+  assemblePackage(request: ContextPackageRequest): Promise<ContextPackage>
+  verifyPackage(contextPackage: ContextPackage): Promise<boolean>
 }
 
-/** Non-goals, stated in the contract so they cannot be quietly forgotten. */
-export const CONTEXT_SERVICE_NON_GOALS = [
-  'Read-only. It never executes an action.',
-  'Organization-scoped. There is no cross-organization context.',
-  'Answers from the governed graph only. It never improvises context from unstructured sources.',
-  'Not built in Phase 1A. Contract types only, with no network service of any kind.',
+export const CONTEXT_SERVICE_BOUNDARIES = [
+  'Purpose-bound and organization-scoped.',
+  'Organization mode is resolved server-side before graph traversal.',
+  'Read and evaluate organizational truth; never mutate it.',
+  'Proposed, simulated, and approved future states are advisory only.',
+  'Authority-bearing uncertainty fails closed.',
 ] as const

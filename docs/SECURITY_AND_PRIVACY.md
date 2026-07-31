@@ -43,7 +43,11 @@ Superseded and voided versions remain readable for historical reconstruction, an
 
 ## 6. Read-only posture
 
-The repository port has no write method. The proposed Organizational Context Services contract types a literal `readOnly: true` that cannot be set false. No port in `src/adapters/lapemo/contracts.ts` mutates anything.
+The graph repository port has no write method. Organizational Context Services
+types a literal `readOnly: true` that cannot be set false. Its audit port records
+only the evaluation artifact for `LIVE` organizations; it cannot mutate graph
+truth, and it is not invoked for `DIAGNOSTIC` organizations. No port in
+`src/adapters/lapemo/contracts.ts` mutates anything.
 
 ## 7. Audit truth
 
