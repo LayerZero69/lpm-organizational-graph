@@ -2,6 +2,23 @@
 
 All notable changes to this repository.
 
+## Unreleased
+
+### Security
+
+- Correct OCS v0.3 verification so both the SHA-256 content integrity hash and
+  HMAC-SHA-256 authentication token must validate. Verification now returns
+  typed failure reasons, uses a timing-safe token comparison, enforces expected
+  organization scope and supported versions, and rejects missing keys,
+  malformed envelopes, and unsupported algorithms.
+- Add negative coverage for wrong, empty, and missing keys; token and hash
+  tampering; evidence and organization tampering; cross-organization adapter
+  results; malformed inputs; and unsupported contract, schema, ontology, and
+  rule-set versions.
+
+OCS v0.3 remains unreleased. This correction adds no database, deployment,
+version tag, production key management, or Lapemo runtime integration.
+
 ## 0.1.0, 2026-07-30
 
 First release. Phase 1A foundation.

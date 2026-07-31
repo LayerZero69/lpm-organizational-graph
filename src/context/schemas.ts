@@ -1,5 +1,6 @@
 import {
   CONTEXT_STATUSES,
+  CONTEXT_INTEGRITY_ALGORITHMS,
   DECISION_STATUSES,
   OPERATING_MODEL_STATE_SCOPES,
   ORGANIZATION_MODES,
@@ -71,12 +72,23 @@ export function validateContextPackage(contextPackage: ContextPackage): Validati
     'schemaVersion',
     'ruleSetVersion',
     'contextContractVersion',
-    'contextPackageHash',
     'policyDecisionId',
   ] as const) {
     if (!isNonEmptyString(contextPackage[field])) {
       issues.push({ path: field, message: `${field} is required.` })
     }
+  }
+  if (!CONTEXT_INTEGRITY_ALGORITHMS.includes(contextPackage.integrity.algorithm)) {
+    issues.push({ path: 'integrity.algorithm', message: 'Integrity algorithm is not supported.' })
+  }
+  if (!/^[a-f0-9]{64}$/.test(contextPackage.integrity.contentHash)) {
+    issues.push({ path: 'integrity.contentHash', message: 'Content hash must be SHA-256 hex.' })
+  }
+  if (!/^[a-f0-9]{64}$/.test(contextPackage.integrity.authenticationToken)) {
+    issues.push({
+      path: 'integrity.authenticationToken',
+      message: 'HMAC authentication token must be SHA-256 hex.',
+    })
   }
   if (contextPackage.readOnly !== true) {
     issues.push({ path: 'readOnly', message: 'OCS packages are read-only.' })

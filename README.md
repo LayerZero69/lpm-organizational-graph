@@ -2,7 +2,7 @@
 
 The LPM Organizational Graph is a governed, temporal model of how an organization operates across people, governed agents, roles, ownership, supervision, delegated authority, decisions, policies, controls, systems, information, evidence, actions, and outcomes.
 
-**Status: v0.1.0, Phase 1A. Domain package only. No production persistence, no network service, no Lapemo integration.**
+**Status: v0.1.0, Phase 1A. OCS v0.3 remains unreleased until its integrity correction is merged. Domain package only. No production persistence, no network service, no Lapemo integration.**
 
 ---
 
@@ -44,8 +44,10 @@ Phase 1A ships adapter **interfaces** only. There is no Lapemo connection, no sh
 
 Organizational Context Services is a ratified Lapemo portfolio capability. This
 repository provides the versioned Context Package contract, purpose-bound
-assembly, deterministic integrity verification, and the executable procurement
-vertical slice. Lapemo owns authenticated delivery, tenancy, persistence,
+assembly, deterministic content hashing, shared-secret HMAC authentication, and
+the executable procurement vertical slice. HMAC verification is mandatory for
+this contract; hash equality alone is insufficient. Neither check grants
+organizational authority. Lapemo owns authenticated delivery, tenancy, persistence,
 observability, and product surfaces.
 
 ## 6. What the Organizational Graph is
